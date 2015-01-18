@@ -5,19 +5,16 @@ require 'pp'
 BOARD_SIZE = 8
 # binding.pry
 
-class ChessValidator
-	# TODO
-end
-
-class InitiateChessTable
-	# TODO
-end
 
 class Controller
-	def self.start(board_filename)
+	def self.start(board_filename, moves_filename)
+		# First we create all the instances of pieces storing all its data (even position)
 		pieces_arr = Parser.parse_board(board_filename)
+		# Then we print the initial state of the board
+		pp "Initial state of the board: "
 		draw_table(pieces_arr)
-		# COMPROBAR SI EL MOVIMIENTO ESTA DENTRO DE LOS LIMITES!! AQUI!! SINO, DESCARTAR DIRECTAMENTE EL MOVIMIENTO
+		# And then we process the movements file and store the results. The result is an array containing LEGAL / ILLEGAL
+		checked_movements = Movements.process_movements(moves_filename, pieces_arr)
 	end
 
 	private
@@ -30,7 +27,7 @@ class Controller
 				possible_piece = Checks.check_position(pieces_arr, actual_column, actual_row)
 				if possible_piece != nil
 					# Puts the piece data on this temp_table position
-					temp_row << possible_piece.team + possible_piece.piece_type
+					temp_row <<  possible_piece.piece_type + possible_piece.team
 				else
 					# Insert "--" on this temp_table position
 					temp_row << "--"
@@ -42,7 +39,6 @@ class Controller
 	end
 end
 
-# VOY POR AQUI
 class Checks
 	def self.valid_position?(position, pieces_arr)
 		(0..BOARD_SIZE).each do |pos_x|
@@ -69,6 +65,13 @@ class Checks
 			end
 		end
 		return nil
+	end
+
+	def self.check_movement(initial_position, final_position, pieces_arr)
+		# First we check the initial position
+		initial_position = PositionParser.to_cartesian(initial_position)
+		initial_checking = check_position(pieces_arr, initial_position[0], initial_position[1])
+		pp initial_checking
 	end
 end
 
@@ -147,6 +150,25 @@ class King
 	end
 end
 
+class Movements
+	# COMPROBAR SI EL MOVIMIENTO ESTA DENTRO DE LOS LIMITES!! AQUI!! SINO, DESCARTAR DIRECTAMENTE EL MOVIMIENTO
+	def self.process_movements(moves_filename, pieces_arr)
+		movements_str = IO.read(moves_filename)
+		# Here we could check the presence of movements data before processing it - ASSUMED
+		movements = movements_str.split("\n")
+		# Output is an array containing LEGAL / ILLEGAL depending on the movements
+		output = []
+		movements.each do |actual_movement|
+			initial_position = actual_movement.split(" ")[0]
+			final_position = actual_movement.split(" ")[1]
+			# This is supposed to return LEGAL / ILLEGAL
+			binding.pry
+			output << Checks.check_movement(initial_position, final_position, pieces_arr)
+		end
+		output
+	end
+end
+
 # bR bN bB bQ bK bB bN bR
 # bP bP bP bP bP bP bP bP
 # -- -- -- -- -- -- -- --
@@ -178,7 +200,7 @@ class Parser
 		table_row.split(" ").each do |piece_acronym|
 			if (piece_acronym != "--")
 				position = [column_count, row_count]
-				temp = Piece.new(position, piece_acronym[0], piece_acronym[1])
+				temp = Piece.new(position, piece_acronym[1], piece_acronym[0])
 				# Little trick
 				if temp != nil
 					pieces_arr << temp
@@ -202,7 +224,7 @@ end
 # end
 
 # Controller.start("simple_board.txt")
-Controller.start("complex_board.txt")
+Controller.start("simple_board.txt", "simple_moves.txt")
 # pp PositionParser.to_cartesian(["a",2])
 # pp PositionParser.to_cartesian(["b",8])
 # pp PositionParser.to_cartesian(["c",6])
