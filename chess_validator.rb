@@ -21,12 +21,29 @@ class Controller
 
 	private
 	def self.draw_table(pieces_arr)
-		puts "Here Table Should Be Drawn...."
+		temp_table = []
+		BOARD_SIZE.times do |actual_row|
+			temp_column = []
+			BOARD_SIZE.times do |actual_column|
+				# Check in every position if there's any piece
+				possible_piece = Checks.check_position(pieces_arr, actual_column, actual_row)
+				if possible_piece != nil
+					# Puts the piece data on this temp_table position
+					temp_column << possible_piece.team + possible_piece.piece_type
+				else
+					# Insert "--" on this temp_table position
+					temp_column << "--"
+				end
+			end
+			temp_table << temp_column
+		end
+		pp temp_table
+		# pp pieces_arr
 	end
 end
 
 # VOY POR AQUI
-class ChecksPresence
+class Checks
 	def self.valid_position?(position, pieces_arr)
 		(0..BOARD_SIZE).each do |pos_x|
 			(0..BOARD_SIZE).each do |pos_y|
@@ -36,7 +53,23 @@ class ChecksPresence
 					end
 				end
 			end
-		end		
+		end
+		true	
+	end
+
+	def self.check_board_size?(x,y)
+		(x < BOARD_SIZE) && (y < BOARD_SIZE)
+	end
+
+	# This class returns the piece on that position
+	def self.check_position(pieces_arr, row, column)
+		pieces_arr.each do |actual_piece|
+			if (actual_piece.position == [row, column])
+				return actual_piece
+			else
+				return nil
+			end
+		end
 	end
 end
 
@@ -70,31 +103,28 @@ end
 
 class Piece
 
-	attr_accessor :position
+	attr_accessor :position, :team, :piece_type
 
-	def initialize(position, team)
+	def initialize(position, team, piece_type)
 		@position = position
 		@team = team
-	end
-
-	def check_board_size?(x,y)
-		(x < BOARD_SIZE) && (y < BOARD_SIZE)
+		@piece_type = piece_type
 	end
 end
 
-class Pawn < Piece
-	def check_movement(new_x, new_y)
+class Pawn
+	def self.check_movement?(new_x, new_y)
 	# 	# Need to check if new_x and new_y is a valid position
 	end
 end
 
-class Knight < Piece
-	def check_movement(new_x, new_y)
+class Knight
+	def self.check_movement?(new_x, new_y)
 	end
 end
 
-class Bishop < Piece
-	def check_movement(new_x, new_y)
+class Bishop
+	def self.check_movement?(new_x, new_y)
 		x_diff = (new_x - @position[0]).abs
 		y_diff = (new_y - @position[1]).abs
 		
@@ -102,19 +132,19 @@ class Bishop < Piece
 	end
 end
 
-class Rook < Piece
-	def check_movement(new_x, new_y)
+class Rook
+	def self.check_movement?(new_x, new_y)
 		(@position[0] == new_x || @position[1] == new_y) # && NO HAY OTRA PIEZA EN EL CAMINO NI EN EL FINAL MEDIO, la del final mirar antes de llamar!! si es de tu equipo, no si es del otro, SI!!!!! MATAAA
 	end
 end
 
-class Queen < Piece
-	def check_movement(new_x, new_y)
+class Queen
+	def self.check_movement?(new_x, new_y)
 	end
 end
 
-class King < Piece
-	def check_movement(new_x, new_y)
+class King
+	def self.check_movement?(new_x, new_y)
 	end
 end
 
@@ -149,7 +179,7 @@ class Parser
 		table_row.split(" ").each do |piece_acronym|
 			if (piece_acronym != "--")
 				position = [column_count, row_count]
-				temp = PieceFactory.get_piece(position, piece_acronym[1], piece_acronym[0])
+				temp = Piece.new(position, piece_acronym[0], piece_acronym[1])
 				# Little trick
 				if temp != nil
 					pieces_arr << temp
@@ -160,19 +190,19 @@ class Parser
 	end
 end
 
-class PieceFactory
-	def self.get_piece(position, type, team)
-		case type
-		when "R" then Rook.new(position, team)
-		when "N" then Knight.new(position, team)
-		when "B" then Bishop.new(position, team)
-		when "Q" then Queen.new(position, team)
-		when "K" then King.new(position, team)
-		end
-	end
-end
+# class PieceFactory
+# 	def self.get_piece(position, type, team)
+# 		case type
+# 		when "R" then Rook.new(position, team)
+# 		when "N" then Knight.new(position, team)
+# 		when "B" then Bishop.new(position, team)
+# 		when "Q" then Queen.new(position, team)
+# 		when "K" then King.new(position, team)
+# 		end
+# 	end
+# end
 
-# Controller.start("simple_board.txt")
+Controller.start("simple_board.txt")
 # pp PositionParser.to_cartesian(["a",2])
 # pp PositionParser.to_cartesian(["b",8])
 # pp PositionParser.to_cartesian(["c",6])
