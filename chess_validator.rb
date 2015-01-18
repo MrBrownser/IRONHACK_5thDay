@@ -3,6 +3,7 @@ require 'pry'
 require 'pp'
 
 BOARD_SIZE = 8
+# binding.pry
 
 class ChessValidator
 	# TODO
@@ -23,22 +24,21 @@ class Controller
 	def self.draw_table(pieces_arr)
 		temp_table = []
 		BOARD_SIZE.times do |actual_row|
-			temp_column = []
+			temp_row = []
 			BOARD_SIZE.times do |actual_column|
 				# Check in every position if there's any piece
 				possible_piece = Checks.check_position(pieces_arr, actual_column, actual_row)
 				if possible_piece != nil
 					# Puts the piece data on this temp_table position
-					temp_column << possible_piece.team + possible_piece.piece_type
+					temp_row << possible_piece.team + possible_piece.piece_type
 				else
 					# Insert "--" on this temp_table position
-					temp_column << "--"
+					temp_row << "--"
 				end
 			end
-			temp_table << temp_column
+			temp_table << temp_row
 		end
 		pp temp_table
-		# pp pieces_arr
 	end
 end
 
@@ -62,14 +62,13 @@ class Checks
 	end
 
 	# This class returns the piece on that position
-	def self.check_position(pieces_arr, row, column)
+	def self.check_position(pieces_arr, column, row)
 		pieces_arr.each do |actual_piece|
-			if (actual_piece.position == [row, column])
+			if (actual_piece.position == [column, row])
 				return actual_piece
-			else
-				return nil
 			end
 		end
+		return nil
 	end
 end
 
@@ -202,7 +201,8 @@ end
 # 	end
 # end
 
-Controller.start("simple_board.txt")
+# Controller.start("simple_board.txt")
+Controller.start("complex_board.txt")
 # pp PositionParser.to_cartesian(["a",2])
 # pp PositionParser.to_cartesian(["b",8])
 # pp PositionParser.to_cartesian(["c",6])
